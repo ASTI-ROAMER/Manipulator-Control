@@ -1,0 +1,46 @@
+A Robotica Input data for 4-Link RRRR Arm
+—------------
+DOF = 4
+The Denavit-Hartenberg parameters:
+
+joint1 	= revolute
+a1 	= 0
+alpha1 	= Pi/2
+d1 	= d1
+theta1 	= q1
+
+joint2 	= revolute
+a2 	= a2
+alpha2 	= 0
+d2 	= 0
+theta2 	= q2
+
+joint3 	= revolute
+a3 	= a3
+alpha3 	= 0
+d3 	= 0
+theta3 	= q3
+
+joint4 	= revolute
+a4 	= a4
+alpha4 	= 0
+d4 	= 0
+theta4 	= q4
+
+The dynamics information:
+
+DYNAMICS
+
+gravity vector = {0,0,g}
+mass1 = m1
+center of mass  = {0,-(1/2)d1,0}
+inertia matrix = {(1/12)*m1*(d1^2),0,0,(1/12)*m1*(d1^2),0,0}
+mass2 = m2
+center of mass  = {-(1/2)*a2,0,0}
+inertia matrix = {0,0,0,(1/12)*m2*(a2^2),0,(1/12)*m2*(a2^2)}
+mass3 = m3
+center of mass  = {-(1/2)*a3,0,0}
+inertia matrix = {0,0,0,(1/12)*m3*(a3^2),0,(1/12)*m3*(a3^2)}
+mass4 = m4
+center of mass  = {-(1/2)*a4,0,0}
+inertia matrix = {0,0,0,(1/12)*m4*(a4^2),0,(1/12)*m4*(a4^2)}
