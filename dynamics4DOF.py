@@ -918,6 +918,15 @@ line2, = ax.plot(x, y, z)
 line3, = ax.plot(x, y, z)
 line4, = ax.plot(x, y, z)
 
+print("q1_store")
+print(q1_store)
+print("q2_store")
+print(q2_store)
+print("q3_store")
+print(q3_store)
+print("q4_store")
+print(q4_store)
+
 i_index = np.arange(0, Iterations)#np.arange(1, len(y0_store))
 for i in i_index:
 
@@ -1026,3 +1035,4 @@ for i in i_index:
     fig.canvas.flush_events()
     time.sleep(TimeIncrement)
     
+
