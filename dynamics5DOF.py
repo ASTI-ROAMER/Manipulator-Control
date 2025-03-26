@@ -662,8 +662,10 @@ y0 = np.array([0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00])
 o_index = np.arange(0, Iterations)
 
 for o in o_index: # Set Iterations
+
     print("o #############################################")
     print(o)
+
     # 15. Set Global Variables
     global Tau
     #global DA
@@ -693,25 +695,29 @@ for o in o_index: # Set Iterations
     Gn = GN(d1, q1_iter, q2_iter, q3_iter, q4_iter, m1, m2, m3, m4, l2, l3, l4)
     
     print('main')
+    
+    '''
     print('Gn') #(5,1)
     print(Gn.shape)
     print('Dnk') #(5,5)
     print(Dnk.shape)
     print('Dnkj') #(5,5,5)
     print(Dnkj.shape)
+    '''
     
 
     Dnk_des = DNK(d1,q1des[0,o], q2des[0,o], q3des[0,o], q4des[0,o], m1, m2, m3, m4, l2, l3, l4)
     Dnkj_des = DNKJ(d1,q1des[0,o], q2des[0,o], q3des[0,o], q4des[0,o], m1, m2, m3, m4, l2, l3, l4)
     Gn_des = GN(d1,q1des[0,o], q2des[0,o], q3des[0,o], q4des[0,o], m1, m2, m3, m4, l2, l3, l4)
 
-    
+    '''
     print('Gn_des') #(5,1)
     print(Gn_des.shape)
     print('Dnk_des') #(5,5)
     print(Dnk_des.shape)
     print('Dnkj_des') #(5,5,5)
     print(Dnkj_des.shape)
+    '''
     
 
     # 19. Hand-over Variables
@@ -776,12 +782,12 @@ for o in o_index: # Set Iterations
                [q4dotdes[0,o]*q3dotdes[0,o]],
                [q4dotdes[0,o]*q4dotdes[0,o]]])
 
-    
+    '''
     print('qdotdotDes') #(5,1)
     print(qdotdotDes.shape)
     print('qdotDes') #(25,1)
     print(qdotDes.shape)
-    
+    '''
 
     ############# Compute Error and Output Torque ##############
     err = np.transpose(np.array([err1, err2, err3, err4])[np.newaxis]);
@@ -789,7 +795,7 @@ for o in o_index: # Set Iterations
 
     Tau = np.zeros((4,1));
 
-    
+    '''
     print('G_des') #(5,1)
     print(G_des.shape)
     print('DA_des') #(5,5)
@@ -800,12 +806,40 @@ for o in o_index: # Set Iterations
     print((np.matmul(Kv,errdot)).shape)
     print('np.matmul(Kp,err)') #(5, 1)
     print((np.matmul(Kp,err)).shape)
+    '''
 
     Tau = (G_des + np.matmul(DA_des,qdotdotDes) + np.matmul(DB_des,qdotDes)) + np.matmul(DA,(np.matmul(Kv,errdot)+np.matmul(Kp,err)))
 
+    # ....... Check matrices
 
-    print('Tau') #(5, 1)
-    print(Tau.shape)
+    '''
+    print('G_des') 
+    print(G_des)
+
+    print('DA_des') 
+    print(DA_des)
+
+    print('DB_des') 
+    print(DB_des)
+
+    print('DA') 
+    print(DA)
+
+    print('qdotdotDes') 
+    print(qdotdotDes)
+
+    print('qdotDes') 
+    print(qdotDes)
+
+    print('errdot') 
+    print(errdot)
+
+    print('err') 
+    print(err)
+    '''
+
+    #print('Tau') #(5, 1)
+    #print(Tau.shape)
 
     ###############################################################
     ##### Add torque limiting here ################~~~~~~~~~~~~~~~~

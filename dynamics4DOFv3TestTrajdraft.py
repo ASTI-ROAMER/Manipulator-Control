@@ -339,6 +339,7 @@ def xdotTeleNoPID(x, t):
 
 
 
+
 # 1. Set trajectory duration/length to get to setpoint
 tfinal = 1
 
@@ -455,80 +456,90 @@ q5 = 0.000
 N = 4
 
 # ##################### Trajectory Generator #####################
+'''
 t1 = 0.2*tfinal # **0.2 = 2s
 t2 = 0.8*tfinal # **0.8 = 8s
-
 tc = (t1/tfinal)*(Iterations*TimeIncrement) #2s
-tm = (t2/tfinal)*(Iterations*TimeIncrement) #8s
-tf = 1*(Iterations*TimeIncrement) # **1 = 10s
+td = (t2/tfinal)*(Iterations*TimeIncrement) #8s
+tf = 1*(Iterations*TimeIncrement) # **1 
+'''
+tf = 1*(Iterations*TimeIncrement) 
+
+tm = 1/2*tf
+
 
 # 12. Set setpoints here ########################################
+
+#   Initialize initial condition ~~~~~~
+
+q1_init = -1.5708 #-90.0002105
+q2_init = 1.5708 #90
+q3_init = -0.785398#-45 
+q4_init = -1.5708#-90
 
 #   Set Elevation and Angles ~~~~~~
 
 #Fixed/Assigned
-'''
-q1des_main = 0.8#0.451640690281701348
-q2des_main = -1.57#0.7898055239243771
-q3des_main = -0.7854#-1.15
-q4des_main = 0.7854#1.5828542923888724
-q5des_main = -0.7854#0.30912280216854615
-'''
 
-'''
-1
-q1des_main = 0.8#0.451640690281701348
-q2des_main = 0.7898#0.7898055239243771
-q3des_main = 0.01#-1.15
-q4des_main = 1.581#1.5828542923888724
-q5des_main = 0.3091#0.30912280216854615
-'''
-
-'''
-q1des_main = 0.4#0.451640690281701348
-q2des_main = -6.52919#0.7898055239243771
-q3des_main = -1.875985#-1.15
-q4des_main = -0.00489955#1.5828542923888724
-q5des_main = 0.00025769#0.30912280216854615
-'''
-
-'''
-q1des_main = 1#0.451640690281701348
-q2des_main = 3.14#0.7898055239243771
-q3des_main = 3.14#-1.15
-q4des_main = 0.34#1.5828542923888724
-q5des_main = 1.57#0.30912280216854615
-'''
-
-'''
-q1des_main = 0.4#0.451640690281701348
-q2des_main = -3.14#0.7898055239243771
-q3des_main = 0.00#-1.15
-q4des_main = -2.84#1.5828542923888724
-q5des_main = -2.18#0.30912280216854615
-'''
-
-q1des_main = -3.14#0.7898055239243771
+q1des_main = -1.5708#-3.14#0.7898055239243771
 q2des_main = 1.0472#-1.15
 q3des_main = -2.84#1.5828542923888724
 q4des_main = -2.18#0.30912280216854615
+
+#https://www.youtube.com/watch?v=vDvAx2ISgkM
 
 #to be populated
 q1des = np.zeros((1,Iterations))
 q2des = np.zeros((1,Iterations))
 q3des = np.zeros((1,Iterations))
 q4des = np.zeros((1,Iterations))
+
 q1desPrev = 0
 q2desPrev = 0
 q3desPrev = 0
 q4desPrev = 0
 
+#   Set Constraints ~~~~~~
+
+qm1 = (q1_init+q1des_main)/2 #Middle point of trajectory
+qm2 = (q2_init+q2des_main)/2
+qm3 = (q3_init+q3des_main)/2
+qm4 = (q4_init+q4des_main)/2
+
+
+#   Set Accelerations ~~~~~~
+#Fixed
+
+q1dotdotdes_max = 4*(q1des - q1_init)/tfinal**2
+q2dotdotdes_max = 4*(q2des - q2_init)/tfinal**2
+q3dotdotdes_max = 4*(q3des - q3_init)/tfinal**2
+q4dotdotdes_max = 4*(q4des - q4_init)/tfinal**2
+
+#to be populated
+q1dotdotdes = np.zeros((1,Iterations))
+q2dotdotdes = np.zeros((1,Iterations))
+q3dotdotdes = np.zeros((1,Iterations))
+q4dotdotdes = np.zeros((1,Iterations))
+
+#   Set tc ~~~~~~
+tc1 = (tf/2) - (0.5)*np.sqrt( ( ((tf**2)*q1dotdotdes_max)-4*(q1des-q1_init) ) / q1dotdotdes_max)
+tc2 = (tf/2) - (0.5)*np.sqrt( ( ((tf**2)*q2dotdotdes_max)-4*(q2des-q2_init) ) / q2dotdotdes_max)
+tc3 = (tf/2) - (0.5)*np.sqrt( ( ((tf**2)*q3dotdotdes_max)-4*(q3des-q3_init) ) / q3dotdotdes_max)
+tc4 = (tf/2) - (0.5)*np.sqrt( ( ((tf**2)*q4dotdotdes_max)-4*(q4des-q4_init) ) / q4dotdotdes_max)
+
+#   Set qc ~~~~~~
+qc1 = (1/2)*q1dotdotdes_max*tc1+q1_init
+qc2 = (1/2)*q2dotdotdes_max*tc2+q2_init
+qc3 = (1/2)*q3dotdotdes_max*tc3+q3_init
+qc4 = (1/2)*q4dotdotdes_max*tc4+q4_init
+
 #   Set Velocities ~~~~~~
 #Fixed
-q1dotdes_max = 2*q1des_main/(2*tf-tc-(tf-tm))
-q2dotdes_max = 2*q2des_main/(2*tf-tc-(tf-tm))
-q3dotdes_max = 2*q3des_main/(2*tf-tc-(tf-tm))
-q4dotdes_max = 2*q4des_main/(2*tf-tc-(tf-tm))
+
+q1dotdes_max = (qm1-qc1)/(tm-tc1)
+q2dotdes_max = (qm2-qc2)/(tm-tc2)
+q3dotdes_max = (qm3-qc3)/(tm-tc3)
+q4dotdes_max = (qm4-qc4)/(tm-tc4)
 
 #to be populated
 q1dotdes = np.zeros((1,Iterations))
@@ -541,20 +552,9 @@ q2dotdesPrev = 0
 q3dotdesPrev = 0
 q4dotdesPrev = 0
 
-#   Set Accelerations ~~~~~~
-#Fixed
-q1dotdotdes_max = q1dotdes_max/tc
-q2dotdotdes_max = q2dotdes_max/tc
-q3dotdotdes_max = q3dotdes_max/tc
-q4dotdotdes_max = q4dotdes_max/tc
-
-#to be populated
-q1dotdotdes = np.zeros((1,Iterations))
-q2dotdotdes = np.zeros((1,Iterations))
-q3dotdotdes = np.zeros((1,Iterations))
-q4dotdotdes = np.zeros((1,Iterations))
 
 #   Intersection ~~~~~~
+'''
 qc1 = 0.5*q1dotdotdes_max*tc**2
 qm1 = q1des_main - 0.5*q1dotdotdes_max*(tf-tm)**2
 
@@ -566,6 +566,7 @@ qm3 = q3des_main - 0.5*q3dotdotdes_max*(tf-tm)**2
 
 qc4 = 0.5*q4dotdotdes_max*tc**2
 qm4 = q4des_main - 0.5*q4dotdotdes_max*(tf-tm)**2
+'''
 
 #   Generate Setpoints ~~~~~~
 p_index = np.arange(0, Iterations)
@@ -573,61 +574,122 @@ for p in p_index:
     tcurr = (p)*TimeIncrement
     print('tcurr')
     print(tcurr)
-    if tcurr < tc: #2s
+
+    #---------------------------q1
+    if (tcurr <= tc1): #2s
         # Acceleration
-        q1dotdotdes[0,p] = q1dotdotdes_max
-        q2dotdotdes[0,p] = q2dotdotdes_max
-        q3dotdotdes[0,p] = q3dotdotdes_max
-        q4dotdotdes[0,p] = q4dotdotdes_max
+        q1dotdotdes[0,p] = q1dotdotdes_max 
 
         # Velocity
         q1dotdes[0,p] = q1dotdotdes_max*tcurr
-        q2dotdes[0,p] = q2dotdotdes_max*tcurr
-        q3dotdes[0,p] = q3dotdotdes_max*tcurr
-        q4dotdes[0,p] = q4dotdotdes_max*tcurr
 
         # Elevation/Angle
-        q1des[0,p] = 0.5*q1dotdotdes_max*tcurr**2
-        q2des[0,p] = 0.5*q2dotdotdes_max*tcurr**2
-        q3des[0,p] = 0.5*q3dotdotdes_max*tcurr**2
-        q4des[0,p] = 0.5*q4dotdotdes_max*tcurr**2
-    elif (tcurr >= tc) and (tcurr <= tm): #between #2s and #8s
+        q1des[0,p] = q1_init + 0.5*q1dotdotdes_max*tcurr**2
+
+    elif (tcurr > tc1 and tcurr <= (tf-tc1)): #between #2s and #8s
         # Acceleration
         q1dotdotdes[0,p] = 0
-        q2dotdotdes[0,p] = 0
-        q3dotdotdes[0,p] = 0
-        q4dotdotdes[0,p] = 0
 
         # Velocity
-        q1dotdes[0,p] = q1dotdes_max
-        q2dotdes[0,p] = q2dotdes_max
-        q3dotdes[0,p] = q3dotdes_max
-        q4dotdes[0,p] = q4dotdes_max
+        q1dotdes[0,p] = (qm1-qc1)/(tm-tc1)
 
         # Elevation/Angle
-        q1des[0,p] = (qm1-qc1)/(tm-tc)*(tcurr) - qc1
-        q2des[0,p] = (qm2-qc2)/(tm-tc)*(tcurr) - qc2
-        q3des[0,p] = (qm3-qc3)/(tm-tc)*(tcurr) - qc3
-        q4des[0,p] = (qm4-qc4)/(tm-tc)*(tcurr) - qc4
+        q1des[0,p] = q1_init + q1dotdotdes_max*tc1*(tcurr-tc1/2)
     else:
-        q1dotdotdes[0,p] = -q1dotdotdes_max
-        q2dotdotdes[0,p] = -q2dotdotdes_max
-        q3dotdotdes[0,p] = -q3dotdotdes_max
-        q4dotdotdes[0,p] = -q4dotdotdes_max
+        q1dotdotdes[0,p] = q1dotdotdes_max
 
         # Velocity
-        q1dotdes[0,p] = q1dotdotdes_max*(tf-tcurr)
-        q2dotdes[0,p] = q2dotdotdes_max*(tf-tcurr)
-        q3dotdes[0,p] = q3dotdotdes_max*(tf-tcurr)
-        q4dotdes[0,p] = q4dotdotdes_max*(tf-tcurr)
+        q1dotdes[0,p] = q1dotdotdes_max*tcurr
 
         # Elevation/Angle
         q1des[0,p] = q1des_main - 0.5*q1dotdotdes_max*(tf-tcurr)**2
+
+    #---------------------------q2
+    if (tcurr <= tc2): #2s
+        # Acceleration
+        q2dotdotdes[0,p] = q2dotdotdes_max 
+
+        # Velocity
+        q2dotdes[0,p] = q2dotdotdes_max*tcurr
+
+        # Elevation/Angle
+        q2des[0,p] = q2_init + 0.5*q2dotdotdes_max*tcurr**2
+
+    elif (tcurr > tc2 and tcurr <= (tf-tc2)): #between #2s and #8s
+        # Acceleration
+        q2dotdotdes[0,p] = 0
+
+        # Velocity
+        q2dotdes[0,p] = (qm2-qc2)/(tm-tc2)
+
+        # Elevation/Angle
+        q2des[0,p] = q2_init + q2dotdotdes_max*tc2*(tcurr-tc2/2)
+    else:
+        q2dotdotdes[0,p] = q2dotdotdes_max
+
+        # Velocity
+        q2dotdes[0,p] = q2dotdotdes_max*tcurr
+
+        # Elevation/Angle
         q2des[0,p] = q2des_main - 0.5*q2dotdotdes_max*(tf-tcurr)**2
+
+    #---------------------------q3
+    if (tcurr <= tc3): #2s
+        # Acceleration
+        q3dotdotdes[0,p] = q3dotdotdes_max 
+
+        # Velocity
+        q3dotdes[0,p] = q3dotdotdes_max*tcurr
+
+        # Elevation/Angle
+        q3des[0,p] = q3_init + 0.5*q3dotdotdes_max*tcurr**2
+
+    elif (tcurr > tc3 and tcurr <= (tf-tc3)): #between #2s and #8s
+        # Acceleration
+        q3dotdotdes[0,p] = 0
+
+        # Velocity
+        q3dotdes[0,p] =(qm3-qc3)/(tm-tc3)
+
+        # Elevation/Angle
+        q3des[0,p] = q3_init + q3dotdotdes_max*tc3*(tcurr-tc3/2)
+    else:
+        q3dotdotdes[0,p] = q3dotdotdes_max
+
+        # Velocity
+        q3dotdes[0,p] = q3dotdotdes_max*tcurr
+
+        # Elevation/Angle
         q3des[0,p] = q3des_main - 0.5*q3dotdotdes_max*(tf-tcurr)**2
-        q4des[0,p] = q4des_main - 0.5*q4dotdotdes_max*(tf-tcurr)**2
 
+    #---------------------------q4
+    if (tcurr <= tc4): #2s
+        # Acceleration
+        q4dotdotdes[0,p] = q4dotdotdes_max 
 
+        # Velocity
+        q4dotdes[0,p] = q4dotdotdes_max*tcurr
+
+        # Elevation/Angle
+        q4des[0,p] = q4_init + 0.5*q4dotdotdes_max*tcurr**2
+
+    elif (tcurr > tc4 and tcurr <= (tf-tc4)): #between #2s and #8s
+        # Acceleration
+        q4dotdotdes[0,p] = 0
+
+        # Velocity
+        q4dotdes[0,p] = (qm4-qc4)/(tm-tc4)
+
+        # Elevation/Angle
+        q4des[0,p] = q4_init + q4dotdotdes_max*tc4*(tcurr-tc4/2)
+    else:
+        q4dotdotdes[0,p] = q4dotdotdes_max
+
+        # Velocity
+        q4dotdes[0,p] = q4dotdotdes_max*tcurr
+
+        # Elevation/Angle
+        q4des[0,p] = q4des_main - 0.5*q3dotdotdes_max*(tf-tcurr)**2
 '''
 print('q1des') #(5,1)
 print(q1des.shape)
@@ -662,8 +724,10 @@ y0 = np.array([0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00])
 o_index = np.arange(0, Iterations)
 
 for o in o_index: # Set Iterations
+
     print("o #############################################")
     print(o)
+
     # 15. Set Global Variables
     global Tau
     #global DA
@@ -693,25 +757,29 @@ for o in o_index: # Set Iterations
     Gn = GN(d1, q1_iter, q2_iter, q3_iter, q4_iter, m1, m2, m3, m4, l2, l3, l4)
     
     print('main')
+    
+    '''
     print('Gn') #(5,1)
     print(Gn.shape)
     print('Dnk') #(5,5)
     print(Dnk.shape)
     print('Dnkj') #(5,5,5)
     print(Dnkj.shape)
+    '''
     
 
     Dnk_des = DNK(d1,q1des[0,o], q2des[0,o], q3des[0,o], q4des[0,o], m1, m2, m3, m4, l2, l3, l4)
     Dnkj_des = DNKJ(d1,q1des[0,o], q2des[0,o], q3des[0,o], q4des[0,o], m1, m2, m3, m4, l2, l3, l4)
     Gn_des = GN(d1,q1des[0,o], q2des[0,o], q3des[0,o], q4des[0,o], m1, m2, m3, m4, l2, l3, l4)
 
-    
+    '''
     print('Gn_des') #(5,1)
     print(Gn_des.shape)
     print('Dnk_des') #(5,5)
     print(Dnk_des.shape)
     print('Dnkj_des') #(5,5,5)
     print(Dnkj_des.shape)
+    '''
     
 
     # 19. Hand-over Variables
@@ -776,12 +844,12 @@ for o in o_index: # Set Iterations
                [q4dotdes[0,o]*q3dotdes[0,o]],
                [q4dotdes[0,o]*q4dotdes[0,o]]])
 
-    
+    '''
     print('qdotdotDes') #(5,1)
     print(qdotdotDes.shape)
     print('qdotDes') #(25,1)
     print(qdotDes.shape)
-    
+    '''
 
     ############# Compute Error and Output Torque ##############
     err = np.transpose(np.array([err1, err2, err3, err4])[np.newaxis]);
@@ -789,7 +857,7 @@ for o in o_index: # Set Iterations
 
     Tau = np.zeros((4,1));
 
-    
+    '''
     print('G_des') #(5,1)
     print(G_des.shape)
     print('DA_des') #(5,5)
@@ -800,12 +868,40 @@ for o in o_index: # Set Iterations
     print((np.matmul(Kv,errdot)).shape)
     print('np.matmul(Kp,err)') #(5, 1)
     print((np.matmul(Kp,err)).shape)
+    '''
 
     Tau = (G_des + np.matmul(DA_des,qdotdotDes) + np.matmul(DB_des,qdotDes)) + np.matmul(DA,(np.matmul(Kv,errdot)+np.matmul(Kp,err)))
 
+    # ....... Check matrices
 
-    print('Tau') #(5, 1)
-    print(Tau.shape)
+    '''
+    print('G_des') 
+    print(G_des)
+
+    print('DA_des') 
+    print(DA_des)
+
+    print('DB_des') 
+    print(DB_des)
+
+    print('DA') 
+    print(DA)
+
+    print('qdotdotDes') 
+    print(qdotdotDes)
+
+    print('qdotDes') 
+    print(qdotDes)
+
+    print('errdot') 
+    print(errdot)
+
+    print('err') 
+    print(err)
+    '''
+
+    #print('Tau') #(5, 1)
+    #print(Tau.shape)
 
     ###############################################################
     ##### Add torque limiting here ################~~~~~~~~~~~~~~~~
@@ -965,7 +1061,7 @@ line2, = ax.plot(x, y, z)
 line3, = ax.plot(x, y, z)
 line4, = ax.plot(x, y, z)
 
-'''
+
 print("q1_store")
 print(q1_store)
 print("q2_store")
@@ -974,7 +1070,7 @@ print("q3_store")
 print(q3_store)
 print("q4_store")
 print(q4_store)
-'''
+
 
 i_index = np.arange(0, Iterations)#np.arange(1, len(y0_store))
 for i in i_index:
